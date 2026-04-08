@@ -187,6 +187,7 @@ export async function run(args: string[]): Promise<void> {
     cwd: projectRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
     detached: false,
+    shell: true,
   });
 
   const logFile = path.join(projectRoot, 'logs', 'setup.log');

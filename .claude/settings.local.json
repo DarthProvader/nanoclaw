@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bash:*)",
+      "Bash(git remote:*)",
+      "Bash(git push:*)",
+      "Bash(npx tsx:*)",
+      "Bash(\"/c/Program Files/Docker/Docker/Docker Desktop.exe\")",
+      "Bash(docker info:*)",
+      "Bash(docker image inspect:*)",
+      "Bash(curl -fsSL onecli.sh/install)",
+      "Bash(sh)",
+      "Bash(ipconfig)",
+      "Bash(ip addr:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(echo \"Auth process started, PID: $!\")",
+      "Bash(git fetch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)",
+      "Bash(git merge:*)",
+      "Bash(curl:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

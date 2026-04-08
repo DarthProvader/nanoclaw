@@ -232,7 +232,7 @@ export class WhatsAppChannel implements Channel {
 
     this.sock.ev.on('creds.update', saveCreds);
 
-    this.sock.ev.on('chats.phoneNumberShare', ({ lid, jid }) => {
+    (this.sock.ev as any).on('chats.phoneNumberShare', ({ lid, jid }: { lid: string; jid: string }) => {
       const lidUser = lid?.split('@')[0].split(':')[0];
       if (lidUser && jid) {
         this.setLidPhoneMapping(lidUser, jid);
