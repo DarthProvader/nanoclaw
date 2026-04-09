@@ -1,4 +1,11 @@
-import { Client, Events, GatewayIntentBits, Message, TextChannel } from 'discord.js';
+import {
+  Client,
+  Events,
+  GatewayIntentBits,
+  Message,
+  Partials,
+  TextChannel,
+} from 'discord.js';
 
 import { ASSISTANT_NAME, TRIGGER_PATTERN } from '../config.js';
 import { readEnvFile } from '../env.js';
@@ -37,6 +44,7 @@ export class DiscordChannel implements Channel {
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.DirectMessages,
       ],
+      partials: [Partials.Channel, Partials.Message],
     });
 
     this.client.on(Events.MessageCreate, async (message: Message) => {
@@ -88,18 +96,20 @@ export class DiscordChannel implements Channel {
 
       // Handle attachments — store placeholders so the agent knows something was sent
       if (message.attachments.size > 0) {
-        const attachmentDescriptions = [...message.attachments.values()].map((att) => {
-          const contentType = att.contentType || '';
-          if (contentType.startsWith('image/')) {
-            return `[Image: ${att.name || 'image'}]`;
-          } else if (contentType.startsWith('video/')) {
-            return `[Video: ${att.name || 'video'}]`;
-          } else if (contentType.startsWith('audio/')) {
-            return `[Audio: ${att.name || 'audio'}]`;
-          } else {
-            return `[File: ${att.name || 'file'}]`;
-          }
-        });
+        const attachmentDescriptions = [...message.attachments.values()].map(
+          (att) => {
+            const contentType = att.contentType || '';
+            if (contentType.startsWith('image/')) {
+              return `[Image: ${att.name || 'image'}]`;
+            } else if (contentType.startsWith('video/')) {
+              return `[Video: ${att.name || 'video'}]`;
+            } else if (contentType.startsWith('audio/')) {
+              return `[Audio: ${att.name || 'audio'}]`;
+            } else {
+              return `[File: ${att.name || 'file'}]`;
+            }
+          },
+        );
         if (content) {
           content = `${content}\n${attachmentDescriptions.join('\n')}`;
         } else {
@@ -125,14 +135,20 @@ export class DiscordChannel implements Channel {
 
       // Store chat metadata for discovery
       const isGroup = message.guild !== null;
-      this.opts.onChatMetadata(chatJid, timestamp, chatName, 'discord', isGroup);
+      this.opts.onChatMetadata(
+        chatJid,
+        timestamp,
+        chatName,
+        'discord',
+        isGroup,
+      );
 
       // Only deliver full message for registered groups
       const group = this.opts.registeredGroups()[chatJid];
       if (!group) {
-        logger.debug(
+        logger.info(
           { chatJid, chatName },
-          'Message from unregistered Discord channel',
+          'Message from unregistered Discord channel — register with this JID',
         );
         return;
       }
@@ -152,6 +168,41 @@ export class DiscordChannel implements Channel {
         { chatJid, chatName, sender: senderName },
         'Discord message stored',
       );
+    });
+
+    // Handle DMs via raw event — discord.js doesn't emit MessageCreate for DMs reliably
+    this.client.on('raw', async (event: any) => {
+      if (event.t !== 'MESSAGE_CREATE') return;
+      if (event.d?.guild_id) return; // guild message handled by MessageCreate
+      if (event.d?.author?.bot) return;
+
+      const channelId = event.d?.channel_id;
+      const chatJid = `dc:${channelId}`;
+      const content = event.d?.content || '';
+      const senderName = event.d?.author?.global_name || event.d?.author?.username || 'Unknown';
+      const sender = event.d?.author?.id;
+      const msgId = event.d?.id;
+      const timestamp = new Date(event.d?.timestamp || Date.now()).toISOString();
+
+      this.opts.onChatMetadata(chatJid, timestamp, senderName, 'discord', false);
+
+      const group = this.opts.registeredGroups()[chatJid];
+      if (!group) {
+        logger.info({ chatJid, chatName: senderName }, 'Message from unregistered Discord DM — register with this JID');
+        return;
+      }
+
+      this.opts.onMessage(chatJid, {
+        id: msgId,
+        chat_jid: chatJid,
+        sender,
+        sender_name: senderName,
+        content,
+        timestamp,
+        is_from_me: false,
+      });
+
+      logger.info({ chatJid, chatName: senderName, sender: senderName }, 'Discord DM stored');
     });
 
     // Handle errors gracefully

@@ -83,6 +83,11 @@ export class WhatsAppChannel implements Channel {
   }
 
   async connect(): Promise<void> {
+    const credsPath = path.join(STORE_DIR, 'auth', 'creds.json');
+    if (!fs.existsSync(credsPath)) {
+      logger.warn('WhatsApp auth not found — skipping WhatsApp channel. Run /add-whatsapp to set up.');
+      return;
+    }
     return new Promise<void>((resolve, reject) => {
       this.pendingFirstOpen = resolve;
       this.connectInternal().catch(reject);
@@ -145,13 +150,11 @@ export class WhatsAppChannel implements Channel {
       const { connection, lastDisconnect, qr } = update;
 
       if (qr) {
-        const msg =
-          'WhatsApp authentication required. Run /setup in Claude Code.';
-        logger.error(msg);
-        exec(
-          `osascript -e 'display notification "${msg}" with title "NanoClaw" sound name "Basso"'`,
+        logger.warn(
+          'WhatsApp authentication required. Run /setup in Claude Code. Continuing without WhatsApp.',
         );
-        setTimeout(() => process.exit(1), 1000);
+        this.sock?.end(new Error('No WhatsApp auth'));
+        return;
       }
 
       if (connection === 'close') {

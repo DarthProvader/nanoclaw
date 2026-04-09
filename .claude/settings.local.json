@@ -20,7 +20,32 @@
       "Bash(git add:*)",
       "Bash(git merge:*)",
       "Bash(curl:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git stash:*)",
+      "Bash(node dist/index.js)",
+      "Bash(echo \"NanoClaw PID: $!\")",
+      "Bash(node -p \"require\\('./package.json'\\).version\")",
+      "Bash(node -p \"process.versions.node.split\\('.'\\)[0]\")",
+      "Bash(docker exec nanoclaw-telegram-main-1775686391335:*)",
+      "Bash(export ONECLI_BIND_HOST=0.0.0.0)",
+      "Bash(docker compose:*)",
+      "Bash(kill %1)",
+      "Bash(taskkill //F //PID 501860)",
+      "Bash(echo \"PID: $!\")",
+      "Bash(taskkill //F //PID 101356)",
+      "Bash(taskkill //F //PID 157044)",
+      "Bash(taskkill //F //PID 418780)",
+      "Bash(taskkill //F //PID 220864)",
+      "Bash(rm -rf store/auth/ store/qr-data.txt store/auth-status.txt)",
+      "Bash([ -f store/qr-data.txt ])",
+      "Bash(break)",
+      "Bash(docker exec:*)",
+      "Bash(taskkill //F //PID 522860)",
+      "Bash(taskkill //F //PID 126800)",
+      "Bash(taskkill //F //PID 230200)",
+      "Bash(taskkill //F //PID 331524)",
+      "Bash(taskkill //F //PID 42140)",
+      "Bash(ping:*)"
     ]
   }
 }
